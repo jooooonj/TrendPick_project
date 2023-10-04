@@ -51,17 +51,17 @@ HTML5, CSS3, JavaScript, Thymeleaf
 
 ### 백엔드
 
-Java17, Gradle, SpringBoot 3.x. Spring Data JPA, MYSQL, OAuth2.0, Spring Security, Spring Data Redis, Spring Batch, Spring Kafka, JUnit5, Mockito
+Java17, Gradle, SpringBoot 3.x. Spring Data JPA, MYSQL, Spring Security, Spring Data Redis, Spring Batch
 
 ### 테스트
 
-Apache JMeter-CLI
+Apache JMeter, JUnit5, Mockito
 
 ### 인프라
 
 Naver Clound Platform - Server(EC2), Object Storage(S3), Cloud DB for MYSQL(RDS), 
 
-Docker, NGINX, Github Action
+Docker, Github Action
 
 ### 협업 툴
 
