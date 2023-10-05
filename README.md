@@ -51,17 +51,17 @@ HTML5, CSS3, JavaScript, Thymeleaf
 
 ### 백엔드
 
-Java17, Gradle, SpringBoot 3.x. Spring Data JPA, MYSQL, OAuth2.0, Spring Security, Spring Data Redis, Spring Batch, Spring Kafka, JUnit5, Mockito
+Java17, Gradle, SpringBoot 3.x. Spring Data JPA, MYSQL, Spring Security, Spring Data Redis, Spring Batch
 
 ### 테스트
 
-Apache JMeter-CLI
+Apache JMeter, JUnit5, Mockito
 
 ### 인프라
 
 Naver Clound Platform - Server(EC2), Object Storage(S3), Cloud DB for MYSQL(RDS), 
 
-Docker, NGINX, Github Action
+Docker, Github Action
 
 ### 협업 툴
 
@@ -248,7 +248,7 @@ Footer // issue tracker를 사용하는 경우 참조한 issue tracker ID를 기
 
 이를 개선하고자 상품 별로 캐시를 적용하고 상품의 값이 자주 바뀌는 특성 상 수정이나 삭제 로직  수행 시 캐시의 내용도 변경되도록 했습니다.
 
-캐시 변경 시에도 요청 시간이 그대로인지, 늘어났는지 상황을 부여하여 확인했고 멤버 email에 DB인덱싱을 적용하여 개선을 이끌어내고자 했습니다. 전체적으로는 필요한 데이터만 받으면서 최적화된 데이터 전송을 하도록 반환 값들을 dto 객체로 수정했습니다.
+캐시 변경 시에도 요청 시간이 그대로인지, 늘어났는지 상황을 부여하여 확인했고, 필요한 데이터만 받으면서 최적화된 데이터 전송을 하도록 반환 값들을 dto 객체로 수정했습니다.
 
 <br>
 
