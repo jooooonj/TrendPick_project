@@ -39,6 +39,7 @@ public class RedisCacheService {
 
         if (cachedCount != null) {
             numberOfReviewsRedisTemplate.opsForValue().set(cacheKey, cachedCount + 1);
+            return;
         }
 
         long dbCount = reviewRepository.countByProduct_ProductId(productId);
@@ -54,6 +55,7 @@ public class RedisCacheService {
 
         if (cachedCount != null) {
             numberOfReviewsRedisTemplate.opsForValue().set(cacheKey, cachedCount - 1);
+            return;
         }
 
         long dbCount = reviewRepository.countByProduct_ProductId(productId);
@@ -100,6 +102,7 @@ public class RedisCacheService {
 
             listOperations.set(cacheKey, 0, String.valueOf(updatedAverageRating));
             listOperations.set(cacheKey, 1, String.valueOf(updatedTotalNumberOfReviews));
+            return;
         }
 
         double dbAverageRating = reviewRepository.findAverageRatingByProductId(productId);
