@@ -1,7 +1,6 @@
 package project.trendpick_pro.domain.product.service;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import project.trendpick_pro.domain.member.entity.Member;
 import project.trendpick_pro.domain.product.entity.dto.ProductRequest;

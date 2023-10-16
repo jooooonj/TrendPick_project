@@ -18,7 +18,7 @@ import project.trendpick_pro.domain.cart.entity.dto.request.CartItemRequest;
 import project.trendpick_pro.domain.cart.service.CartService;
 import project.trendpick_pro.domain.member.entity.Member;
 import project.trendpick_pro.domain.member.entity.MemberRoleType;
-import project.trendpick_pro.global.security.SecurityConfig;
+import project.trendpick_pro.global.config.SecurityConfig;
 import project.trendpick_pro.global.util.rq.Rq;
 import project.trendpick_pro.global.util.rsData.RsData;
 import java.util.Collections;
