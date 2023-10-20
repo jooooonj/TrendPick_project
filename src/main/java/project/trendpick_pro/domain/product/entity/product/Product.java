@@ -9,11 +9,14 @@ import project.trendpick_pro.domain.common.base.BaseTimeEntity;
 import project.trendpick_pro.domain.product.entity.product.dto.request.ProductSaveRequest;
 import project.trendpick_pro.domain.product.entity.productOption.ProductOption;
 import project.trendpick_pro.domain.product.entity.productOption.dto.ProductOptionSaveRequest;
+import project.trendpick_pro.domain.product.exception.ProductStockOutException;
 import project.trendpick_pro.domain.tags.tag.entity.Tag;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import static project.trendpick_pro.domain.product.entity.product.ProductStatus.SOLD_OUT;
 
 @Entity
 @Getter
@@ -37,6 +40,8 @@ public class Product extends BaseTimeEntity {
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private ProductOption productOption;
+    @Column(name = "stock")
+    private int stock;
 
     private int reviewCount = 0;
     private double rateAvg = 0;
@@ -48,10 +53,11 @@ public class Product extends BaseTimeEntity {
     private int discountedPrice;
 
     @Builder
-    private Product(String productCode, String title, String description) {
+    private Product(String productCode, String title, String description, int stock) {
         this.productCode = productCode;
         this.title = title;
         this.description = description;
+        this.stock = stock;
     }
 
     public static Product of(String title, String description) {
@@ -59,6 +65,7 @@ public class Product extends BaseTimeEntity {
                 .productCode("P" + UUID.randomUUID().toString())
                 .title(title)
                 .description(description)
+                .stock(100)
                 .build();
     }
 
@@ -96,5 +103,10 @@ public class Product extends BaseTimeEntity {
         for (Tag tag : tags) {
             tag.connectProduct(this);
         }
+    }
+
+    public void decreaseStock(int stock){
+        this.stock -= stock;
+        System.out.println("stock = " + this.stock);
     }
 }
