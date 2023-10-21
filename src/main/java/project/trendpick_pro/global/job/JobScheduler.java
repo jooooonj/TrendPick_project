@@ -13,6 +13,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -53,6 +54,7 @@ public class JobScheduler {
 
     // 10분마다 체크해서 주문이 생성된지 30분 이상 지났는데 결제 처리가 없으면 주문을 취소상태로 변경한다.
     @Scheduled(fixedRate = 1000 * 60 * 10)
+    @Async
     public void performCancelOrderJob() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         LocalDateTime date = LocalDateTime.now().minusMinutes(30);
 //        LocalDateTime date = LocalDateTime.now().plusDays(1); //테스트용
@@ -79,7 +81,7 @@ public class JobScheduler {
         log.info(String.valueOf(execution.getStatus()));
     }
 
-    public String getPerformMakeRebateDataJobParam1Value() {
+    private String getPerformMakeRebateDataJobParam1Value() {
         LocalDateTime rebateDate = LocalDateTime.now().getDayOfMonth() >= 15 ? LocalDateTime.now().minusMonths(1) : LocalDateTime.now().minusMonths(2);
 
         return "%04d".formatted(rebateDate.getYear()) + "-" + "%02d".formatted(rebateDate.getMonthValue());
