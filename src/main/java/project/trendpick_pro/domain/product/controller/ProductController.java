@@ -13,11 +13,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import project.trendpick_pro.domain.ask.entity.dto.response.AskResponse;
-import project.trendpick_pro.domain.ask.service.AskService;
+import project.trendpick_pro.domain.ask.service.impl.AskServiceImpl;
 import project.trendpick_pro.domain.brand.service.BrandService;
 import project.trendpick_pro.domain.category.service.MainCategoryService;
 import project.trendpick_pro.domain.category.service.SubCategoryService;
+import project.trendpick_pro.domain.review.service.impl.ReviewServiceImpl;
 import project.trendpick_pro.global.basedata.tagname.service.impl.TagNameServiceImpl;
 import project.trendpick_pro.global.util.rq.Rq;
 import project.trendpick_pro.domain.member.entity.Member;
@@ -27,10 +27,7 @@ import project.trendpick_pro.domain.product.entity.product.dto.response.ProductL
 import project.trendpick_pro.domain.product.entity.product.dto.response.ProductListResponseBySeller;
 import project.trendpick_pro.domain.product.service.ProductService;
 import project.trendpick_pro.domain.recommend.service.RecommendService;
-import project.trendpick_pro.domain.review.entity.dto.response.ReviewProductResponse;
-import project.trendpick_pro.domain.review.service.ReviewService;
 import project.trendpick_pro.global.util.rsData.RsData;
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -56,8 +53,8 @@ public class ProductController {
     private final MainCategoryService mainCategoryService;
     private final SubCategoryService subCategoryService;
 
-    private final ReviewService reviewService;
-    private final AskService askService;
+    private final ReviewServiceImpl reviewService;
+    private final AskServiceImpl askService;
 
     private final Rq rq;
 
@@ -117,10 +114,11 @@ public class ProductController {
     @GetMapping("/{productId}")
     public String showProduct(@PathVariable Long productId, Pageable pageable, Model model) {
         model.addAttribute("productResponse", productService.getProduct(productId));
-        Page<ReviewProductResponse> productReviews = reviewService.getReviews(productId, pageable);
-        Page<AskResponse> productAsk = askService.findAsksByProduct(productId, 0);
-        model.addAttribute("productReview", productReviews);
-        model.addAttribute("productAsk", productAsk);
+        model.addAttribute("productReview", reviewService.getReviews(productId, pageable));
+        model.addAttribute("productAsk", askService.findAsksByProduct(productId, 0));
+        model.addAttribute("reviewCount", reviewService.findTotalReviewsByProduct(productId));
+        model.addAttribute("reviewAverageRating", reviewService.findAverageRatingByProduct(productId));
+
         return "trendpick/products/detailpage";
     }
 
