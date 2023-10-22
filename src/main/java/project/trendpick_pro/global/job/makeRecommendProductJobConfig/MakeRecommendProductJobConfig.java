@@ -2,6 +2,7 @@ package project.trendpick_pro.global.job.makeRecommendProductJobConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -102,66 +103,84 @@ public class MakeRecommendProductJobConfig {
         return new ItemProcessor<Member, List<Recommend>>() {
             @Override
             public List<Recommend> process(Member member) throws Exception {
-                recommendRepository.deleteAllByMemberId(member.getEmail());
+                recommendRepository.deleteAllByMemberEmail(member.getEmail());
 
                 List<ProductByRecommended> tags = productRepository.findRecommendProduct(member.getEmail());
                 Set<FavoriteTag> memberTags = member.getTags();
 
-                //태그명에 따라 가지고 있는 product_id
-                // : 멤버 태그명에 따라 해당 상품에 점수를 부여해야 하기 때문에
-                Map<String, List<Long>> productIdListByTagName = new HashMap<>();
+                Map<String, List<Long>> productIdListByTagName = classifyProductsByTag(tags);
+                Map<Long, ProductByRecommended> recommendProductByProductId = classifyTagsByProductId(tags);
 
-                //상품 id 중복을 없애기 위함
-                //맴버의 태그명과 여러개가 겹쳐서 여러개의 추천상품이 반환되었을것 그 중복을 없애야 한다.
-                Map<Long, ProductByRecommended> recommendProductByProductId = new HashMap<>();
+                updateMemberTagScores(memberTags, productIdListByTagName, recommendProductByProductId);
 
-                //같은 태그명을 가지고 있지만 제각각 상품을 가르키는 productId는 다를 것이다. 그래서 태그명 별로 어떤 상품들을 가르키는지 모아보자
-                for (ProductByRecommended tag : tags) {
-                    if (!productIdListByTagName.containsKey(tag.getTagName()))
-                        productIdListByTagName.put(tag.getTagName(), new ArrayList<>());
-                    productIdListByTagName.get(tag.getTagName()).add(tag.getProductId());
-                }
+                List<ProductByRecommended> recommendProductList = sortRecommendProductsByScore(recommendProductByProductId);
 
-                //마찬가지로 같은 상품을 가르키고 있지만 태그명은 제각각일 것이다. 우리가 뽑아내길 원하는 것은 추천상품이다. 즉 같은 상품이 중복되면 안된다.
-                //그래서 상품Id에 대한 중복을 없애서 하나에 몰아넣는 코드이다.
-                for (ProductByRecommended response : tags) {
-                    if (recommendProductByProductId.containsKey(response.getProductId()))
-                        continue;
-                    recommendProductByProductId.put(response.getProductId(), response);
-                }
-
-                //실제로직! member 선호태그에는 점수가 있을 것이다.
-                //그러니까  우리가 반환하려고 하는 추천상품이 점수가 몇점인지 갱신하는 코드이다.
-                for (FavoriteTag memberTag : memberTags) {
-                    if (productIdListByTagName.containsKey(memberTag.getName())) {
-                        List<Long> productIdList = productIdListByTagName.get(memberTag.getName());
-                        for (Long id : productIdList) {
-                            recommendProductByProductId.get(id).plusTotalScore(memberTag.getScore());
-                        }
-                    }
-                }
-
-                List<ProductByRecommended> recommendProductList = new ArrayList<>(recommendProductByProductId.values()).stream()
-                        .sorted(Comparator.comparing(ProductByRecommended::getTotalScore).reversed())
-                        .toList();
-
-                //Product 변환해서 리턴
-                List<Product> products = new ArrayList<>();
-                for (ProductByRecommended recommendProduct : recommendProductList) {
-                    products.add(productRepository.findById(recommendProduct.getProductId()).orElseThrow(
-                            () -> new ProductNotFoundException("존재하지 않는 상품입니다.")
-                    ));
-                }
-
-                List<Recommend> recommends = new ArrayList<>();
-                for (Product product : products) {
-                    Recommend recommend = Recommend.of(product);
-                    recommend.connectMember(member);
-                    recommends.add(recommend);
-                }
+                List<Recommend> recommends = convertProductToRecommend(member, recommendProductList, productRepository);
 
                 return recommends;
             }
         };
+    }
+
+    //productRecommend -> Recommend
+    private  List<Recommend> convertProductToRecommend(Member member, List<ProductByRecommended> recommendProductList, ProductRepository productRepository) {
+        List<Product> products = new ArrayList<>();
+        for (ProductByRecommended recommendProduct : recommendProductList) {
+            products.add(productRepository.findById(recommendProduct.getProductId()).orElseThrow(
+                    () -> new ProductNotFoundException("존재하지 않는 상품입니다.")
+            ));
+        }
+
+        List<Recommend> recommends = new ArrayList<>();
+        for (Product product : products) {
+            Recommend recommend = Recommend.of(product);
+            recommend.connectMember(member);
+            recommends.add(recommend);
+        }
+        return recommends;
+    }
+
+    //점수를 기준으로 추천 상품을 순위별로 정렬하여 반환
+    private  List<ProductByRecommended> sortRecommendProductsByScore(Map<Long, ProductByRecommended> recommendProductByProductId) {
+        return new ArrayList<>(recommendProductByProductId.values()).stream()
+                .sorted(Comparator.comparing(ProductByRecommended::getTotalScore).reversed())
+                .toList();
+    }
+
+    //우리가 반환하려고 하는 추천상품이 점수가 몇점인지 갱신하는 코드이다.
+    private static void updateMemberTagScores(Set<FavoriteTag> memberTags, Map<String, List<Long>> productIdListByTagName, Map<Long, ProductByRecommended> recommendProductByProductId) {
+        for (FavoriteTag memberTag : memberTags) {
+            if (productIdListByTagName.containsKey(memberTag.getName())) {
+                List<Long> productIdList = productIdListByTagName.get(memberTag.getName());
+                for (Long id : productIdList) {
+                    recommendProductByProductId.get(id).plusTotalScore(memberTag.getScore());
+                }
+            }
+        }
+    }
+
+    //마찬가지로 같은 상품을 가르키고 있지만 태그명은 제각각일 것이다. 우리가 뽑아내길 원하는 것은 추천상품이다. 즉 같은 상품이 중복되면 안된다.
+    //그래서 상품Id에 대한 중복을 없애서 하나에 몰아넣는 코드이다.
+    private static Map<Long, ProductByRecommended> classifyTagsByProductId(List<ProductByRecommended> tags) {
+        Map<Long, ProductByRecommended> recommendProductByProductId = new HashMap<>();
+        for (ProductByRecommended response : tags) {
+            if (recommendProductByProductId.containsKey(response.getProductId()))
+                continue;
+            recommendProductByProductId.put(response.getProductId(), response);
+        }
+        return recommendProductByProductId;
+    }
+
+    //태그명에 따라 가지고 있는 product_id
+    // : 멤버 태그명에 따라 해당 상품에 점수를 부여해야 하기 때문에
+    private Map<String, List<Long>> classifyProductsByTag(List<ProductByRecommended> tags) {
+        Map<String, List<Long>> productIdListByTagName = new HashMap<>();
+        for (ProductByRecommended tag : tags) {
+            if (!productIdListByTagName.containsKey(tag.getTagName())) {
+                productIdListByTagName.put(tag.getTagName(), new ArrayList<>());
+            }
+            productIdListByTagName.get(tag.getTagName()).add(tag.getProductId());
+        }
+        return productIdListByTagName;
     }
 }

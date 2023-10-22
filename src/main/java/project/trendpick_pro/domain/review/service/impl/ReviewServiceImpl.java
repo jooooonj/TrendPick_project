@@ -20,6 +20,7 @@ import project.trendpick_pro.domain.review.entity.dto.request.ReviewSaveRequest;
 import project.trendpick_pro.domain.review.entity.dto.response.ReviewProductResponse;
 import project.trendpick_pro.domain.review.entity.dto.response.ReviewResponse;
 import project.trendpick_pro.domain.review.repository.ReviewRepository;
+import project.trendpick_pro.domain.review.service.RedisCacheService;
 import project.trendpick_pro.domain.review.service.ReviewService;
 import project.trendpick_pro.global.util.rq.Rq;
 import project.trendpick_pro.global.util.rsData.RsData;
@@ -32,13 +33,13 @@ import java.util.List;
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
-
     private final FileTranslator fileTranslator;
     private final Rq rq;
-
     private final ProductService productService;
-
+    private final RedisCacheService redisCacheService;
     private final AmazonS3 amazonS3;
+    private static final String REVIEW_COUNT_CACHE_KEY = "reviewCount:Item:";
+    private static final String AVERAGE_RATE_CACHE_KEY = "averageRating:Item:";
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -56,7 +57,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review review = Review.of(reviewSaveRequest, actor, product, mainFile);
         product.addReview(review.getRating()); //상품 리뷰수, 상품 평균 평점을 계산해서 저장
-        reviewRepository.save(review);
+        Review savedReview = reviewRepository.save(review);
+
+        String cacheKey = REVIEW_COUNT_CACHE_KEY + product.getId();
+        redisCacheService.plusOneToTotalNumberOfReviewsByProductId(product.getId(), cacheKey);
+        redisCacheService.updateAverageRatingByProductId(product.getId(), cacheKey,
+                savedReview.getRating());
+
         return RsData.of("S-1", "리뷰 등록이 완료되었습니다.", ReviewResponse.of(review));
     }
 
@@ -84,6 +91,9 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId).orElseThrow();
         review.getFile().deleteFile(amazonS3, bucket);
         reviewRepository.delete(review);
+
+        String cacheKey = REVIEW_COUNT_CACHE_KEY + review.getProduct().getId();
+        redisCacheService.minusOneToTotalNumberOfReviewsByProductId(review.getProduct().getId(), cacheKey);
     }
 
     public ReviewResponse getReview(Long productId) {
@@ -94,6 +104,26 @@ public class ReviewServiceImpl implements ReviewService {
     public Page<ReviewProductResponse> getReviews(Long productId, Pageable pageable) {
         pageable = PageRequest.of(pageable.getPageNumber(), 6);
         return reviewRepository.findAllByProductId(productId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Long findTotalReviewsByProduct(
+            final Long productId
+    ) {
+        Product product = productService.findById(productId);
+
+        String cacheKey = REVIEW_COUNT_CACHE_KEY + product.getId();
+        return redisCacheService.getTotalNumberOfReviewsByProductId(product.getId(), cacheKey);
+    }
+
+    @Transactional(readOnly = true)
+    public Double findAverageRatingByProduct(
+            final Long productId
+    ) {
+        Product product = productService.findById(productId);
+
+        String cacheKey = AVERAGE_RATE_CACHE_KEY + product.getId();
+        return redisCacheService.getAverageRatingByProductId(productId, cacheKey);
     }
 
     public Review findById(Long id) {

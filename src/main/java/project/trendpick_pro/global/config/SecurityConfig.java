@@ -1,4 +1,4 @@
-package project.trendpick_pro.global.security;
+package project.trendpick_pro.global.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

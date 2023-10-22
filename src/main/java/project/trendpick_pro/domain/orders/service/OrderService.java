@@ -15,7 +15,7 @@ import java.util.List;
 
 public interface OrderService {
     RsData cartToOrder(Member member, CartToOrderRequest request);
-    RsData<Long> productToOrder(Member member, Long id, int quantity, String size, String color);
+    RsData<Long> productToOrder(Member member, Long productId, int quantity, String size, String color);
     RsData cancel(Long orderId);
     void delete(Long id);
     RsData<OrderDetailResponse> findOrderItems(Member member, Long orderId);

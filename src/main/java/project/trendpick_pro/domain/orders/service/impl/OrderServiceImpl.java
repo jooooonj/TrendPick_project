@@ -24,7 +24,9 @@ import project.trendpick_pro.domain.orders.exception.OrderNotFoundException;
 import project.trendpick_pro.domain.orders.repository.OrderItemRepository;
 import project.trendpick_pro.domain.orders.repository.OrderRepository;
 import project.trendpick_pro.domain.orders.service.OrderService;
+import project.trendpick_pro.domain.product.entity.product.Product;
 import project.trendpick_pro.domain.product.exception.ProductStockOutException;
+import project.trendpick_pro.domain.product.repository.ProductRepository;
 import project.trendpick_pro.domain.product.service.ProductService;
 import project.trendpick_pro.global.util.rsData.RsData;
 
@@ -33,7 +35,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+    private final ProductRepository productRepository;
 
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
@@ -66,7 +68,6 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = createOrderItems(productId, quantity, size, color);
         Order order = orderRepository.save(
                 Order.createOrder(member, new Delivery(member.getAddress()), orderItems));
-
         return RsData.of("S-1", "주문을 시작합니다.", order.getId());
     }
 
@@ -184,13 +185,25 @@ public class OrderServiceImpl implements OrderService {
 
     private List<OrderItem> createOrderItems(List<CartItem> cartItems) {
         List<OrderItem> orderItems = new ArrayList<>();
-        for (CartItem cartItem : cartItems)
-            orderItems.add(OrderItem.of(productService.findByIdWithOrder(cartItem.getProduct().getId()), cartItem));
+        for (CartItem cartItem : cartItems){
+            Product product  = productService.findByIdWithPessimisticLock(cartItem.getProduct().getId());
+            validateProductQuantity(cartItem.getQuantity(), product);
+            product.decreaseStock(cartItem.getQuantity());
+            orderItems.add(OrderItem.of(product, cartItem));
+        }
 
         return orderItems;
     }
 
     private List<OrderItem> createOrderItems(Long productId, int quantity, String size, String color) {
-        return List.of(OrderItem.of(productService.findByIdWithOrder(productId), quantity, size, color));
+        Product product = productService.findByIdWithPessimisticLock(productId);
+        validateProductQuantity(quantity, product);
+        product.decreaseStock(quantity);
+        return List.of(OrderItem.of(product, quantity, size, color));
+    }
+
+    private void validateProductQuantity(int quantity, Product product) {
+        if(product.getStock() < quantity)
+            throw new ProductStockOutException("상품의 재고가 부족하여 주문이 불가능합니다.");
     }
 }

@@ -25,7 +25,7 @@ public class CouponCard extends BaseTimeEntity {
     @JoinColumn(name = "coupon")
     private Coupon coupon;
 
-    @Column(name = "coupon_code", nullable = false, unique = true)
+    @Column(name = "coupon_code", unique = true)
     private UUID couponCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,13 +33,11 @@ public class CouponCard extends BaseTimeEntity {
     private Member member;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private CouponStatus status;
 
     private LocalDateTime usedDate;
 
     @Embedded
-    @Column(nullable = false)
     private ExpirationPeriod expirationPeriod;
 
     public CouponCard(Coupon coupon){

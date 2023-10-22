@@ -19,20 +19,9 @@ spring:
     defer-datasource-initialization: true
     properties:
       hibernate:
-        format_sql: true
+#        format_sql: true
         default_batch_fetch_size: 100
-  sql:
-    init:
-      mode: always
   servlet:
     multipart:
       max-file-size: 3MB
       max-request-size: 20MB
-  kafka:
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      max-poll-records: 100

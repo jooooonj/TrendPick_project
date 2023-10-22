@@ -32,7 +32,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     @Override
-    public Page<ProductListResponse> findAllByCategoryId(ProductSearchCond cond, Pageable pageable) {
+    public Page<ProductListResponse> getProductResponseWithQuerydsl(ProductSearchCond cond, Pageable pageable) {
         List<ProductListResponse> result = queryFactory
                 .select(new QProductListResponse(
                         product.id,
@@ -45,11 +45,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                         )
                 )
                 .from(product)
-                .leftJoin(product.productOption, productOption)
-                .leftJoin(productOption.mainCategory, mainCategory)
-                .leftJoin(productOption.subCategory, subCategory)
-                .leftJoin(productOption.brand, brand)
-                .leftJoin(productOption.file, commonFile)
+                .innerJoin(product.productOption, productOption)
+                .innerJoin(productOption.mainCategory, mainCategory)
+                .innerJoin(productOption.subCategory, subCategory)
+                .innerJoin(productOption.brand, brand)
+                .innerJoin(productOption.file, commonFile)
                 .where(
                         mainCategoryEq(cond),
                         subCategoryEq(cond)
@@ -61,11 +61,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         JPAQuery<Long> count = queryFactory
                 .select(product.count())
                 .from(product)
-                .leftJoin(product.productOption, productOption)
-                .leftJoin(productOption.mainCategory, mainCategory)
-                .leftJoin(productOption.subCategory, subCategory)
-                .leftJoin(productOption.brand, brand)
-                .leftJoin(productOption.file, commonFile)
+                .innerJoin(product.productOption, productOption)
+                .innerJoin(productOption.mainCategory, mainCategory)
+                .innerJoin(productOption.subCategory, subCategory)
+                .innerJoin(productOption.brand, brand)
+                .innerJoin(productOption.file, commonFile)
                 .where(
                         mainCategoryEq(cond),
                         subCategoryEq(cond)
@@ -110,8 +110,8 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                         product.discountedPrice
                 ))
                 .from(product)
-                .leftJoin(product.productOption, productOption)
-                .leftJoin(productOption.file, commonFile)
+                .innerJoin(product.productOption, productOption)
+                .innerJoin(productOption.file, commonFile)
                 .where(productOption.brand.name.eq(brand))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -121,7 +121,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         JPAQuery<Long> count = queryFactory
                 .select(product.count())
                 .from(product)
-                .leftJoin(product.productOption.file, commonFile)
+                .innerJoin(product.productOption.file, commonFile)
                 .where(product.productOption.brand.name.eq(brand));
 
         return PageableExecutionUtils.getPage(list, pageable, count::fetchOne);
@@ -141,11 +141,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                         )
                 )
                 .from(product)
-                .leftJoin(product.productOption, productOption)
-                .leftJoin(productOption.mainCategory, mainCategory)
-                .leftJoin(productOption.subCategory, subCategory)
-                .leftJoin(productOption.brand, brand)
-                .leftJoin(productOption.file, commonFile)
+                .innerJoin(product.productOption, productOption)
+                .innerJoin(productOption.mainCategory, mainCategory)
+                .innerJoin(productOption.subCategory, subCategory)
+                .innerJoin(productOption.brand, brand)
+                .innerJoin(productOption.file, commonFile)
                 .where(
                         product.title.contains(cond.getKeyword())
                     .or(brand.name.contains(cond.getKeyword()))
@@ -159,11 +159,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         JPAQuery<Long> count = queryFactory
                 .select(product.count())
                 .from(product)
-                .leftJoin(product.productOption, productOption)
-                .leftJoin(productOption.mainCategory, mainCategory)
-                .leftJoin(productOption.subCategory, subCategory)
-                .leftJoin(productOption.brand, brand)
-                .leftJoin(productOption.file, commonFile)
+                .innerJoin(product.productOption, productOption)
+                .innerJoin(productOption.mainCategory, mainCategory)
+                .innerJoin(productOption.subCategory, subCategory)
+                .innerJoin(productOption.brand, brand)
+                .innerJoin(productOption.file, commonFile)
                 .where(
                         product.title.contains(cond.getKeyword())
                                 .or(brand.name.contains(cond.getKeyword()))

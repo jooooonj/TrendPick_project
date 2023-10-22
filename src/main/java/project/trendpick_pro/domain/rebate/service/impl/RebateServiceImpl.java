@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import project.trendpick_pro.domain.cash.entity.CashLog;
 import project.trendpick_pro.domain.cash.service.CashService;
 import project.trendpick_pro.domain.orders.entity.OrderItem;
+import project.trendpick_pro.domain.orders.repository.OrderItemRepository;
+import project.trendpick_pro.domain.orders.repository.OrderRepository;
 import project.trendpick_pro.domain.orders.service.OrderService;
 import project.trendpick_pro.domain.rebate.entity.MonthRebateData;
 import project.trendpick_pro.domain.rebate.entity.RebateOrderItem;
@@ -25,15 +27,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RebateServiceImpl implements RebateService {
+    private final OrderRepository orderRepository;
     private final RebateOrderItemRepository rebateOrderItemRepository;
     private final MonthRebateDataRepository monthRebateDataRepository;
     private final OrderService orderService;
+    private final OrderItemRepository orderItemRepository;
     private final CashService cashService;
     private final StoreService storeService;
 
     @Transactional
     @Override
-    public RsData makeRebateOrderItem(String brandName, String yearMonth) {
+    public RsData<List<RebateOrderItem>> makeRebateOrderItem(String brandName, String yearMonth) {
         String fromDateStr = yearMonth + "-01 00:00:00.000000";
         String toDateStr = yearMonth + "-%02d 23:59:59.999999".formatted(Ut.date.getEndDayOf(yearMonth));
         List<OrderItem> orderItems = orderService.findAllByCreatedDateBetweenOrderByIdAsc(
@@ -46,7 +50,7 @@ public class RebateServiceImpl implements RebateService {
         List<RebateOrderItem> rebateOrderItems = convertToRebateOrderItem(brandName, orderItems);
 
         rebateOrderItems.forEach(this::updateOrCreateRebateOrderItem);
-        return RsData.of("S-1", "정산 데이터가 성공적으로 생성되었습니다.");
+        return RsData.of("S-1", "정산 데이터가 성공적으로 생성되었습니다.", rebateOrderItems);
     }
     
 
@@ -108,6 +112,16 @@ public class RebateServiceImpl implements RebateService {
         LocalDateTime toDate = Ut.date.parse(toDateStr);
 
         return rebateOrderItemRepository.findAllByCreatedDateBetweenAndSellerNameOrderByIdAsc(fromDate, toDate, brandName);
+    }
+
+    @Transactional
+    public List<RebateOrderItem> findAllRebateOrderItem(){
+        List<RebateOrderItem> rebateOrderItems = new ArrayList<>();
+        List<OrderItem> orderItems = orderItemRepository.findAll();
+        for (OrderItem orderItem : orderItems) {
+            rebateOrderItems.add(new RebateOrderItem(orderItem));
+        }
+        return rebateOrderItems;
     }
 
     private static RsData<Object> validateAvailableRebate(RebateOrderItem rebateOrderItem) {

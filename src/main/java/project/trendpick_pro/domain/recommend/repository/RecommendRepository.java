@@ -10,5 +10,5 @@ public interface RecommendRepository extends JpaRepository<Recommend, Long>, Rec
 
     @Modifying
     @Query("delete from Recommend r where r.member.email=:email")
-    void deleteAllByMemberId(@Param("email") String email);
+    void deleteAllByMemberEmail(@Param("email") String email);
 }

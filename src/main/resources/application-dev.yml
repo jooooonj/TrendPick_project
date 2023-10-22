@@ -7,19 +7,19 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
   data:
     redis:
       host: ${dev.redis.host}
-  kafka:
-      bootstrap-servers: ${dev.kafka.host}:${dev.kafka.port}
+
+redis:
+  host: ${dev.redis.host}
+  port: ${dev.redis.port}
 
 logging.level:
   org:
     hibernate.SQL: error
-
-kafka:
-  host: ${dev.kafka.host}
-  port: ${dev.kafka.port}
-redis:
-  host: ${dev.redis.host}
-  port: ${dev.redis.port}

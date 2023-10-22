@@ -10,7 +10,7 @@ import project.trendpick_pro.domain.product.entity.product.dto.response.ProductL
 import java.util.List;
 
 public interface ProductRepositoryCustom {
-    Page<ProductListResponse> findAllByCategoryId(ProductSearchCond cond, Pageable pageable);
+    Page<ProductListResponse> getProductResponseWithQuerydsl(ProductSearchCond cond, Pageable pageable);
     List<ProductByRecommended> findRecommendProduct(String email);
     Page<ProductListResponseBySeller> findAllBySeller(String brand, Pageable pageable);
     Page<ProductListResponse> findAllByKeyword(ProductSearchCond cond, Pageable pageable);

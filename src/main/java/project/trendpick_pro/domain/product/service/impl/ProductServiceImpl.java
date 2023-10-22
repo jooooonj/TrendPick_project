@@ -4,6 +4,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -107,6 +110,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Transactional
+    @CachePut(value = "product", key = "#productId")
     public RsData<Long> modify(Long productId, ProductRequest productRequest, MultipartFile requestMainFile, List<MultipartFile> requestSubFiles) throws IOException {
 
         rq.checkAdmin();
@@ -136,6 +140,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "product", key = "#productId")
     public void delete(Long productId) {
         rq.getAdmin();
         Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품입니다."));
@@ -143,21 +148,21 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
-//    @Cacheable(value = "product", key = "#productId")
+    @Cacheable(value = "product", key = "#productId")
     public ProductResponse getProduct(Long productId) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품입니다."));
+        Product product = productRepository.findByIdToConvertDto(productId).orElseThrow(
+                () -> new ProductNotFoundException("존재하지 않는 상품입니다.")
+        );
+
         if(rq.checkLogin() && rq.checkMember()){
             favoriteTagService.updateTag(rq.getMember(), product, TagType.SHOW);
         }
         return ProductResponse.of(product);
     }
-
-//    @Cacheable(value = "productList", key = "#offset")
     public Page<ProductListResponse> getProducts(int offset, String mainCategory, String subCategory) {
         ProductSearchCond cond = new ProductSearchCond(mainCategory, subCategory);
         PageRequest pageable = PageRequest.of(offset, 18);
-        Page<ProductListResponse> allByCategoryId = productRepository.findAllByCategoryId(cond, pageable);
-        return allByCategoryId;
+        return productRepository.getProductResponseWithQuerydsl(cond, pageable);
     }
 
     public Page<ProductListResponse> findAllByKeyword(String keyword, int offset) {
@@ -219,15 +224,15 @@ public class ProductServiceImpl implements ProductService {
         product.applyDiscount(discountRate);
     }
 
-    public Product findById(Long id) {
-        return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
+    public Product findById(Long productId) {
+        return productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
     }
 
     public Product findByIdWithBrand(Long productId) {
         return productRepository.findByIdWithBrand(productId);
     }
 
-    public Product findByIdWithOrder(Long id) {
-        return productRepository.findByIdWithOrder(id).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
+    public Product findByIdWithPessimisticLock(Long productId) {
+        return productRepository.findByIdWithPessimisticLock(productId).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
     }
 }

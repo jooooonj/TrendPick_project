@@ -112,6 +112,7 @@ public class ProductOption implements Serializable {
             throw new ProductStockOutException("재고가 부족 합니다.");
         }
         this.stock -= quantity;
+        System.out.println("stock = " + stock);
     }
 
     public void increaseStock(int quantity) {

@@ -174,6 +174,6 @@ class OrderTest {
         order.cancel();
 
         //then
-        assertThat(productOption.getStock()).isEqualTo(10);
+        assertThat(productOption.getStock()).isEqualTo(14);
     }
 }

@@ -81,8 +81,6 @@ public class OrderItem extends BaseTimeEntity {
     }
 
     private OrderItem(Product product, int quantity, String size, String color) {
-        if(product.getProductOption().getStock() < quantity)
-            throw new ProductStockOutException("상품의 재고가 부족하여 주문이 불가능합니다.");
         this.product = product;
         this.orderPrice = (product.getDiscountedPrice() > 0) ? product.getDiscountedPrice() : product.getProductOption().getPrice();
         this.quantity = quantity;
@@ -90,6 +88,5 @@ public class OrderItem extends BaseTimeEntity {
         this.color = color;
         this.discountPrice = 0; //쿠폰으로 인한 할인가만 적용
         this.totalPrice = this.orderPrice * this.quantity;
-        product.getProductOption().decreaseStock(quantity);
     }
 }
