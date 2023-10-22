@@ -150,18 +150,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Cacheable(value = "product", key = "#productId")
     public ProductResponse getProduct(Long productId) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품입니다."));
+        Product product = productRepository.findByIdToConvertDto(productId).orElseThrow(
+                () -> new ProductNotFoundException("존재하지 않는 상품입니다.")
+        );
+
         if(rq.checkLogin() && rq.checkMember()){
             favoriteTagService.updateTag(rq.getMember(), product, TagType.SHOW);
         }
         return ProductResponse.of(product);
     }
-
     public Page<ProductListResponse> getProducts(int offset, String mainCategory, String subCategory) {
         ProductSearchCond cond = new ProductSearchCond(mainCategory, subCategory);
         PageRequest pageable = PageRequest.of(offset, 18);
-        Page<ProductListResponse> allByCategoryId = productRepository.findAllByCategoryId(cond, pageable);
-        return allByCategoryId;
+        return productRepository.getProductResponseWithQuerydsl(cond, pageable);
     }
 
     public Page<ProductListResponse> findAllByKeyword(String keyword, int offset) {
@@ -223,15 +224,15 @@ public class ProductServiceImpl implements ProductService {
         product.applyDiscount(discountRate);
     }
 
-    public Product findById(Long id) {
-        return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
+    public Product findById(Long productId) {
+        return productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
     }
 
     public Product findByIdWithBrand(Long productId) {
         return productRepository.findByIdWithBrand(productId);
     }
 
-    public Product findByIdWithOrder(Long id) {
-        return productRepository.findByIdWithOrder(id).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
+    public Product findByIdWithPessimisticLock(Long productId) {
+        return productRepository.findByIdWithPessimisticLock(productId).orElseThrow(() -> new ProductNotFoundException("존재하지 않는 상품 입니다."));
     }
 }

@@ -28,5 +28,5 @@ public interface ProductService {
     void applyDiscount(Long productId, double discountRate);
     Product findById(Long id);
     Product findByIdWithBrand(Long productId);
-    Product findByIdWithOrder(Long ProductId);
+    Product findByIdWithPessimisticLock(Long ProductId);
 }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import project.trendpick_pro.domain.product.entity.product.Product;
+import project.trendpick_pro.domain.product.entity.product.dto.request.ProductSearchCond;
 
 import java.util.Optional;
 
@@ -24,5 +25,27 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :productId")
-    Optional<Product> findByIdWithOrder(@Param("productId") Long productId);
+    Optional<Product> findByIdWithPessimisticLock(@Param("productId") Long productId);
+
+    @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+    @Query("SELECT p FROM Product p WHERE p.id = :productId")
+    Optional<Product> findByIdWithOptimisticLock(@Param("productId") Long productId);
+
+    @Query("SELECT distinct p FROM Product p " +
+            "JOIN FETCH p.productOption po " +
+            "JOIN FETCH p.tags " +
+            "JOIN FETCH po.mainCategory " +
+            "JOIN FETCH po.subCategory " +
+            "JOIN FETCH po.brand " +
+            "JOIN FETCH po.file f " +
+            "WHERE p.id = :productId")
+    Optional<Product> findByIdToConvertDto(@Param("productId") Long productId);
+
+    @Query("SELECT distinct p FROM Product p " +
+            "JOIN FETCH p.productOption po " +
+            "JOIN FETCH p.tags " +
+            "JOIN FETCH po.brand " +
+            "JOIN FETCH po.file f " +
+            "WHERE p.id = :productId")
+    Page<Product> findProductsToProductListDto(ProductSearchCond cond, Pageable pageable);
 }
