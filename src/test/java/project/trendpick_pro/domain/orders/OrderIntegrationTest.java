@@ -2,11 +2,9 @@ package project.trendpick_pro.domain.orders;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionTemplate;
 import project.trendpick_pro.IntegrationTestSupport;
 import project.trendpick_pro.domain.member.entity.Member;
 import project.trendpick_pro.domain.member.entity.MemberRoleType;
@@ -22,7 +20,6 @@ import project.trendpick_pro.domain.product.exception.ProductStockOutException;
 import project.trendpick_pro.domain.product.repository.ProductRepository;
 import project.trendpick_pro.domain.tags.tag.entity.Tag;
 import project.trendpick_pro.domain.tags.tag.repository.TagRepository;
-import project.trendpick_pro.global.basedata.tagname.service.impl.TagNameServiceImpl;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -43,8 +40,6 @@ public class OrderIntegrationTest extends IntegrationTestSupport {
     private MemberRepository memberRepository;
     @Autowired
     private TagRepository tagRepository;
-    @Autowired
-    private TransactionTemplate transactionTemplate;
 
 
     @AfterEach

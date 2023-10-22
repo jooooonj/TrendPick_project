@@ -35,7 +35,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
@@ -187,7 +186,7 @@ public class OrderServiceImpl implements OrderService {
     private List<OrderItem> createOrderItems(List<CartItem> cartItems) {
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem cartItem : cartItems){
-            Product product  = productService.findByIdWithOrder(cartItem.getProduct().getId());
+            Product product  = productService.findByIdWithPessimisticLock(cartItem.getProduct().getId());
             validateProductQuantity(cartItem.getQuantity(), product);
             product.decreaseStock(cartItem.getQuantity());
             orderItems.add(OrderItem.of(product, cartItem));
@@ -197,7 +196,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private List<OrderItem> createOrderItems(Long productId, int quantity, String size, String color) {
-        Product product = productService.findByIdWithOrder(productId);
+        Product product = productService.findByIdWithPessimisticLock(productId);
         validateProductQuantity(quantity, product);
         product.decreaseStock(quantity);
         return List.of(OrderItem.of(product, quantity, size, color));
