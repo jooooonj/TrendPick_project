@@ -16,10 +16,10 @@ spring:
     redis:
       host: ${dev.redis.host}
 
-logging.level:
-  org:
-    hibernate.SQL: error
-
 redis:
   host: ${dev.redis.host}
   port: ${dev.redis.port}
+
+logging.level:
+  org:
+    hibernate.SQL: error

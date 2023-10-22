@@ -32,7 +32,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     @Override
-    public Page<ProductListResponse> findAllByCategoryId(ProductSearchCond cond, Pageable pageable) {
+    public Page<ProductListResponse> getProductResponseWithQuerydsl(ProductSearchCond cond, Pageable pageable) {
         List<ProductListResponse> result = queryFactory
                 .select(new QProductListResponse(
                         product.id,

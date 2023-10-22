@@ -122,10 +122,12 @@ public class BaseData {
                 accessKeyMap.put("bucket", bucket);
 
                 int memberCount = 10;
-                int productCount = 200;
+                int productCount = 20;
                 int reviewCount = 10;
                 int couponCount = 10;
                 String brandName = "polo";
+                ProductOptionSaveRequest request = ProductOptionSaveRequest.of(List.of("L"), List.of("RED"), 100, 10000, ProductStatus.SALE.getText());
+                ProductOption productOption = ProductOption.of(request);
 
                 saveMembers(memberCount, tagNameServiceImpl, memberService);
                 saveUniqueMembers(memberService, brandName);

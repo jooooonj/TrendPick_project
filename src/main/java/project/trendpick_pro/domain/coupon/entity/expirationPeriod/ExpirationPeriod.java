@@ -20,7 +20,6 @@ public class ExpirationPeriod {
 
     private LocalDateTime endDate;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ExpirationType expirationType;
 
