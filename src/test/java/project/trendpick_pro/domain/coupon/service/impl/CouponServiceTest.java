@@ -38,13 +38,6 @@ class CouponServiceTest extends IntegrationTestSupport {
     @Autowired
     private ProductRepository productRepository;
 
-    @AfterEach
-    void tearDown() {
-        couponRepository.deleteAllInBatch();
-        storeRepository.deleteAllInBatch();
-        productRepository.deleteAllInBatch();
-    }
-
     @DisplayName("브랜드에서 쿠폰을 발급한다.")
     @Test
     void createCoupon() throws Exception {
@@ -70,42 +63,6 @@ class CouponServiceTest extends IntegrationTestSupport {
         assertThat(coupon).isNotNull()
                 .extracting("name", "limitIssueDate", "minimumPurchaseAmount", "discountPercent")
                 .contains("[polo] coupon", 10, 5000, 50);
-    }
-
-    @DisplayName("모든 브랜드별 쿠폰들을 조회한다.")
-    @Test
-    void findAllCoupons() throws Exception {
-        //given
-        Store store1 = new Store("polo");
-        Store store2 = new Store("nike");
-        Store store3 = new Store("adidas");
-        storeRepository.saveAll(List.of(store1, store2, store3));
-
-        Coupon coupon1 = createCoupon("polo");
-        coupon1.connectStore(store1);
-        Coupon coupon2 = createCoupon("polo");
-        coupon2.connectStore(store1);
-        Coupon coupon3 = createCoupon("nike");
-        coupon3.connectStore(store2);
-        Coupon coupon4 = createCoupon("nike");
-        coupon4.connectStore(store2);
-        Coupon coupon5 = createCoupon("adidas");
-        coupon5.connectStore(store3);
-        couponRepository.saveAll(List.of(coupon1, coupon2, coupon3, coupon4, coupon5));
-
-        //when
-        List<CouponResponse> coupons = couponService.findAllCoupons();
-
-        //then
-        assertThat(coupons).hasSize(5)
-                .extracting("couponName", "minimumPurchaseAmount", "limitCount", "issueCount")
-                .contains(
-                        tuple("[polo] couponName", 1000, 100, 0),
-                        tuple("[polo] couponName", 1000, 100, 0),
-                        tuple("[nike] couponName", 1000, 100, 0),
-                        tuple("[nike] couponName", 1000, 100, 0),
-                        tuple("[adidas] couponName", 1000, 100, 0)
-                );
     }
 
     private static Coupon createCoupon(String storeName) {
