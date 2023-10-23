@@ -41,22 +41,12 @@ public class OrderIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private TagRepository tagRepository;
 
-
-    @AfterEach
-    void tearDown() {
-        tagRepository.deleteAllInBatch();
-        orderItemRepository.deleteAllInBatch();
-        orderRepository.deleteAllInBatch();
-        productRepository.deleteAllInBatch();
-        memberRepository.deleteAllInBatch();
-    }
-
     @Test
     @DisplayName("재고 차감 동시성 테스트")
     void concurrencyTest() throws InterruptedException {
 
         Product testProduct = productRepository.save(createProduct());
-        Member testMember = memberRepository.save(createMember());
+        Member testMember = memberRepository.save(createMember1());
 
         int threadCount = 100;
         //멀티스레드 이용 ExecutorService : 비동기를 단순하게 처리할 수 있또록 해주는 java api
@@ -86,7 +76,7 @@ public class OrderIntegrationTest extends IntegrationTestSupport {
     void concurrencyTest_fail() throws InterruptedException {
 
         Product testProduct = productRepository.save(createProduct());
-        Member testMember = memberRepository.save(createMember());
+        Member testMember = memberRepository.save(createMember2());
 
         int threadCount = 100;
         //멀티스레드 이용 ExecutorService : 비동기를 단순하게 처리할 수 있또록 해주는 java api
@@ -136,9 +126,21 @@ public class OrderIntegrationTest extends IntegrationTestSupport {
         return product;
     }
 
-    private static Member createMember() {
+    private static Member createMember1() {
         Member member = Member.builder()
-                .email("TrendPick@email.com")
+                .email("TrendPick1234@email.com")
+                .password("12345")
+                .username("TrendPick")
+                .phoneNumber("010-1234-5678")
+                .role(MemberRoleType.MEMBER)
+                .brand("Polo")
+                .build();
+        return member;
+    }
+
+    private static Member createMember2() {
+        Member member = Member.builder()
+                .email("TrendPick123456@email.com")
                 .password("12345")
                 .username("TrendPick")
                 .phoneNumber("010-1234-5678")

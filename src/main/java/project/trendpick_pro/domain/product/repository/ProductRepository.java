@@ -40,12 +40,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
             "JOIN FETCH po.file f " +
             "WHERE p.id = :productId")
     Optional<Product> findByIdToConvertDto(@Param("productId") Long productId);
-
-    @Query("SELECT distinct p FROM Product p " +
-            "JOIN FETCH p.productOption po " +
-            "JOIN FETCH p.tags " +
-            "JOIN FETCH po.brand " +
-            "JOIN FETCH po.file f " +
-            "WHERE p.id = :productId")
-    Page<Product> findProductsToProductListDto(ProductSearchCond cond, Pageable pageable);
 }
